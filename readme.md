@@ -4,9 +4,14 @@ Sentry is a PHP 5.3+ fully-featured authentication & authorization system. It al
 
 Sentry is a framework agnostic set of interfaces with default implementations, though you can substitute any implementations you see fit.
 
-[![Build Status](https://travis-ci.org/cartalyst/sentry.png?branch=master)](https://travis-ci.org/cartalyst/sentry)
+# 2.2 Changelog
+The last official Sentry version is v2.1 and was intended to be used with Laravel 4.
+This is a fork based on [feature/laravel-5](https://github.com/vladutcornel/sentry/tree/feature/laravel-5), intended to be used with Laravel 5 and the following changes:
 
-![Bitdeli](https://d2weczhvl823v0.cloudfront.net/cartalyst/sentry/trend.png)
+1. (Not implemented) Globa trottling
+2. Improve support for Laravel5, if needed
+2. (Not implemented) Drop support for FuelPHP
+3. (Not implemented) Drop support for CodeIgniter
 
 ### Features
 
