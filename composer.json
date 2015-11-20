@@ -1,6 +1,6 @@
 {
-	"name": "cartalyst/sentry",
-	"description": "PHP 5.3+ Fully-featured Authentication & Authorization System",
+	"name": "vladutcornel/sentry",
+	"description": "Sentry fork that works with laravel5 and supports global throtteling",
 	"keywords": ["auth", "security", "laravel", "codeigniter", "fuelphp", "kohana"],
 	"license": "BSD-3-Clause",
 	"authors": [
