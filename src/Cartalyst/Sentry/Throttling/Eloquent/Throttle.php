@@ -176,8 +176,8 @@ class Throttle extends Model implements ThrottleInterface {
 		{
 			$this->suspended    = true;
 			$this->suspended_at = $this->freshTimeStamp();
-			$this->save();
 		}
+		$this->save();
 	}
 
 	/**

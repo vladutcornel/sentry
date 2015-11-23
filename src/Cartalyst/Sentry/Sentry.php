@@ -193,18 +193,35 @@ class Sentry {
         // to authenticate them
         if ($throttlingEnabled = $this->throttleProvider->isEnabled())
         {
-            if ($ipThrottle = $this->throttleProvider->findByIP($this->ipAddress))
-            {
-                $ipThrottle->check();
-            }
+            $exception = null;
             try {
                 if ($throttle = $this->throttleProvider->findByUserLogin($credentials[$loginName], $this->ipAddress))
                 {
                     $throttle->check();
                 }
-            } catch (UserNotFoundException $ex) {
-                $ipThrottle->addLoginAttempt();
-                throw $ex;
+            } catch (\Exception $ex) {
+                $exception = $ex;
+            }
+
+            try {
+                if ($ipThrottle = $this->throttleProvider->findByIP($this->ipAddress))
+                {
+                    $ipThrottle->check();
+                }
+            } catch (\Exception $ex) {
+                $exception = $ex;
+            }
+
+            if ($exception) {
+                // Throttle even after reaching step limit
+                if (isset($throttle)) {
+                    $throttle->addLoginAttempt();
+                }
+                if (isset($ipThrottle)) {
+                    $ipThrottle->addLoginAttempt();
+                }
+
+                throw $exception;
             }
 
         }

@@ -8,10 +8,11 @@ Sentry is a framework agnostic set of interfaces with default implementations, t
 The last official Sentry version is v2.1 and was intended to be used with Laravel 4.
 This is a fork based on [feature/laravel-5](https://github.com/vladutcornel/sentry/tree/feature/laravel-5), intended to be used with Laravel 5 and the following changes:
 
-1. (Not implemented) Globa trottling
-2. Improve support for Laravel5, if needed
-2. (Not implemented) Drop support for FuelPHP
-3. (Not implemented) Drop support for CodeIgniter
+1. Global throttling
+2. Keep adding login attempts after suspended
+3. Improve support for Laravel5, if needed
+4. (Not implemented) Drop support for FuelPHP
+5. (Not implemented) Drop support for CodeIgniter
 
 ### Features
 
