@@ -120,7 +120,7 @@ return array(
 		|
 		*/
 
-		'model' => 'Cartalyst\Sentry\Users\Eloquent\User',
+		'model' => Cartalyst\Sentry\Users\Eloquent\User::class,
 
 		/*
 		|--------------------------------------------------------------------------
@@ -186,7 +186,7 @@ return array(
 		|
 		*/
 
-		'model' => 'Cartalyst\Sentry\Throttling\Eloquent\Throttle',
+		'model' => Cartalyst\Sentry\Throttling\Eloquent\Throttle::class,
 
 		/*
 		|--------------------------------------------------------------------------
@@ -201,6 +201,20 @@ return array(
 		*/
 
 		'attempt_limit' => 5,
+
+		/*
+		|--------------------------------------------------------------------------
+		| IP Attempts Limit
+		|--------------------------------------------------------------------------
+		|
+		| How many attempts to allow an IP to fail before blocking it, regardless of the e-mail used.
+		| When setting this value, you should consider offices with multiple users that share the same IP.
+		|
+		| Supported: int
+		|
+		*/
+
+		'ip_attempt_limit' => 5,
 
 		/*
 		|--------------------------------------------------------------------------

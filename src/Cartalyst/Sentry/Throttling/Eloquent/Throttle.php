@@ -21,6 +21,8 @@
 use Cartalyst\Sentry\Throttling\ThrottleInterface;
 use Cartalyst\Sentry\Throttling\UserSuspendedException;
 use Cartalyst\Sentry\Throttling\UserBannedException;
+use Cartalyst\Sentry\Throttling\IPSuspendedException;
+use Cartalyst\Sentry\Throttling\IPBannedException;
 use Illuminate\Database\Eloquent\Model;
 use DateTime;
 
@@ -68,6 +70,13 @@ class Throttle extends Model implements ThrottleInterface {
 	 * @var int
 	 */
 	protected static $attemptLimit = 5;
+
+	/**
+	 * IP Attempt limit.
+	 *
+	 * @var int
+	 */
+	protected static $ipAttemptLimit = 5;
 
 	/**
 	 * Suspensions time in minutes.
@@ -120,13 +129,13 @@ class Throttle extends Model implements ThrottleInterface {
 	{
 		$this->attempts++;
 		$this->last_attempt_at = $this->freshTimeStamp();
+		$isGlobal = !$this->user_id;
 
-		if ($this->getLoginAttempts() >= static::$attemptLimit)
-		{
+		if (( $isGlobal && $this->getLoginAttempts() >= static::$ipAttemptLimit)
+			||
+			(!$isGlobal && $this->getLoginAttempts() >= static::$attemptLimit)) {
 			$this->suspend();
-		}
-		else
-		{
+		} else {
 			$this->save();
 		}
 	}
@@ -253,20 +262,38 @@ class Throttle extends Model implements ThrottleInterface {
 	 */
 	public function check()
 	{
-		if ($this->isBanned())
-		{
-			throw new UserBannedException(sprintf(
-				'User [%s] has been banned.',
-				$this->getUser()->getLogin()
-			));
-		}
+		if ($user = $this->getUser()) {
+			if ($this->isBanned())
+			{
+				throw new UserBannedException(sprintf(
+					'User [%s] has been banned.',
+					$this->getUser()->getLogin()
+				));
+			}
 
-		if ($this->isSuspended())
-		{
-			throw new UserSuspendedException(sprintf(
-				'User [%s] has been suspended.',
-				$this->getUser()->getLogin()
-			));
+			if ($this->isSuspended())
+			{
+				throw new UserSuspendedException(sprintf(
+					'User [%s] has been suspended.',
+					$this->getUser()->getLogin()
+				));
+			}
+		} else {
+			if ($this->isBanned())
+			{
+				throw new IPBannedException(sprintf(
+					'IP [%s] has been banned.',
+					$this->ip_address
+				));
+			}
+
+			if ($this->isSuspended())
+			{
+				throw new IPSuspendedException(sprintf(
+					'IP [%s] has been suspended.',
+					$this->ip_address
+				));
+			}
 		}
 
 		return true;
@@ -425,6 +452,26 @@ class Throttle extends Model implements ThrottleInterface {
 	public static function getAttemptLimit()
 	{
 		return static::$attemptLimit;
+	}
+
+	/**
+	 * Set IP attempt limit.
+	 *
+	 * @param  int  $limit
+	 */
+	public static function setIPAttemptLimit($limit)
+	{
+		static::$ipAttemptLimit = (int) $limit;
+	}
+
+	/**
+	 * Get IP attempt limit.
+	 *
+	 * @return  int
+	 */
+	public static function getIPAttemptLimit()
+	{
+		return static::$ipAttemptLimit;
 	}
 
 	/**

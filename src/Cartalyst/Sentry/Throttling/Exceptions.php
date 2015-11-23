@@ -20,3 +20,5 @@
 
 class UserBannedException extends \RuntimeException {}
 class UserSuspendedException extends \RuntimeException {}
+class IPBannedException extends \RuntimeException {}
+class IPSuspendedException extends \RuntimeException {}

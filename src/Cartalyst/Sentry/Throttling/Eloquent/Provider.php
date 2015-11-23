@@ -67,6 +67,32 @@ class Provider implements ProviderInterface {
 	/**
 	 * Finds a throttler by the given Model.
 	 *
+	 * @param  string  $ipAddress
+	 * @return \Cartalyst\Sentry\Throttling\ThrottleInterface
+	 */
+	public function findByIP($ipAddress)
+	{
+		if (!$ipAddress) {
+			return;
+		}
+		$model = $this->createModel();
+		$query = $model
+			->whereNull('user_id')
+			->where('ip_address', '=', $ipAddress);
+
+		if ( ! $throttle = $query->first())
+		{
+			$throttle = $this->createModel();
+			$throttle->ip_address = $ipAddress;
+			$throttle->save();
+		}
+
+		return $throttle;
+	}
+
+	/**
+	 * Finds a throttler by the given Model.
+	 *
 	 * @param  \Cartalyst\Sentry\Users\UserInterface $user
 	 * @param  string  $ipAddress
 	 * @return \Cartalyst\Sentry\Throttling\ThrottleInterface

@@ -223,6 +223,16 @@ class SentryServiceProvider extends ServiceProvider {
 					array($attemptLimit)
 				);
 			}
+
+			if (method_exists($model, 'setIPAttemptLimit'))
+			{
+				$ipAttemptLimit = array_get($config, 'throttling.ip_attempt_limit');
+
+				forward_static_call_array(
+					array($model, 'setIPAttemptLimit'),
+					array($ipAttemptLimit)
+				);
+			}
 			if (method_exists($model, 'setSuspensionTime'))
 			{
 				$suspensionTime = array_get($config, 'throttling.suspension_time');

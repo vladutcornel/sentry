@@ -188,16 +188,26 @@ class Sentry {
 			unset($credentials[$loginCredentialKey]);
 		}
 
-		// If throttling is enabled, we'll firstly check the throttle.
-		// This will tell us if the user is banned before we even attempt
-		// to authenticate them
-		if ($throttlingEnabled = $this->throttleProvider->isEnabled())
-		{
-			if ($throttle = $this->throttleProvider->findByUserLogin($credentials[$loginName], $this->ipAddress))
-			{
-				$throttle->check();
-			}
-		}
+        // If throttling is enabled, we'll firstly check the throttle.
+        // This will tell us if the user is banned before we even attempt
+        // to authenticate them
+        if ($throttlingEnabled = $this->throttleProvider->isEnabled())
+        {
+            if ($ipThrottle = $this->throttleProvider->findByIP($this->ipAddress))
+            {
+                $ipThrottle->check();
+            }
+            try {
+                if ($throttle = $this->throttleProvider->findByUserLogin($credentials[$loginName], $this->ipAddress))
+                {
+                    $throttle->check();
+                }
+            } catch (UserNotFoundException $ex) {
+                $ipThrottle->addLoginAttempt();
+                throw $ex;
+            }
+
+        }
 
 		try
 		{
@@ -205,17 +215,27 @@ class Sentry {
 		}
 		catch (UserNotFoundException $e)
 		{
-			if ($throttlingEnabled and isset($throttle))
+			if ($throttlingEnabled)
 			{
-				$throttle->addLoginAttempt();
+				if (isset($throttle)) {
+					$throttle->addLoginAttempt();
+				}
+				if (isset($ipThrottle)) {
+					$ipThrottle->addLoginAttempt();
+				}
 			}
 
 			throw $e;
 		}
 
-		if ($throttlingEnabled and isset($throttle))
+		if ($throttlingEnabled)
 		{
-			$throttle->clearLoginAttempts();
+			if (isset($throttle)) {
+				$throttle->clearLoginAttempts();
+			}
+			if (isset($ipThrottle)) {
+				$ipThrottle->clearLoginAttempts();
+			}
 		}
 
 		$user->clearResetPassword();
