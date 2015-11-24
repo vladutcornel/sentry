@@ -22,6 +22,7 @@ use Cartalyst\Sentry\Throttling\ThrottleInterface;
 use Cartalyst\Sentry\Throttling\ProviderInterface;
 use Cartalyst\Sentry\Users\ProviderInterface as UserProviderInterface;
 use Cartalyst\Sentry\Users\UserInterface;
+use Cartalyst\Sentry\Users\UserNotFoundException;
 
 class Provider implements ProviderInterface {
 
@@ -78,6 +79,10 @@ class Provider implements ProviderInterface {
 		$model = $this->createModel();
 		$query = $model
 			->whereNull('user_id')
+            ->where(function($orQuery) {
+                $orQuery->where('login','=','');
+                $orQuery->orWhereNull('login');
+            })
 			->where('ip_address', '=', $ipAddress);
 
 		if ( ! $throttle = $query->first())
@@ -114,12 +119,48 @@ class Provider implements ProviderInterface {
 		{
 			$throttle = $this->createModel();
 			$throttle->user_id = $userId;
+			$throttle->login = $user->getLogin();
 			if ($ipAddress) $throttle->ip_address = $ipAddress;
 			$throttle->save();
 		}
 
 		return $throttle;
 	}
+
+	/**
+	 * Finds a throttler by the given login (username or email).
+	 *
+	 * This method is protected because it should only be called when the user was not found in the DB
+	 *
+	 * @param  string $login
+	 * @param  string  $ipAddress
+	 * @return \Cartalyst\Sentry\Throttling\ThrottleInterface
+	 */
+	protected function findByUsername($login, $ipAddress = null)
+	{
+		$model = $this->createModel();
+		$query = $model->where('login', '=', $login);
+
+		if ($ipAddress)
+		{
+			$query->where(function($query) use ($ipAddress) {
+				$query->where('ip_address', '=', $ipAddress);
+				$query->orWhere('ip_address', '=', NULL);
+			});
+		}
+
+		if ( ! $throttle = $query->first())
+		{
+			$throttle = $this->createModel();
+			$throttle->user_id = NULL;
+			$throttle->login = $login;
+			if ($ipAddress) $throttle->ip_address = $ipAddress;
+			$throttle->save();
+		}
+
+		return $throttle;
+	}
+
 	/**
 	 * Finds a throttler by the given user ID.
 	 *
@@ -141,7 +182,11 @@ class Provider implements ProviderInterface {
 	 */
 	public function findByUserLogin($login, $ipAddress = null)
 	{
-		return $this->findByUser($this->userProvider->findByLogin($login),$ipAddress);
+		try {
+			return $this->findByUser($this->userProvider->findByLogin($login),$ipAddress);
+		} catch (UserNotFoundException $ex) {
+			return $this->findByUsername($login, $ipAddress);
+		}
 	}
 
 	/**

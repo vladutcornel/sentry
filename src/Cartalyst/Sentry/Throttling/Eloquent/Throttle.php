@@ -129,7 +129,7 @@ class Throttle extends Model implements ThrottleInterface {
 	{
 		$this->attempts++;
 		$this->last_attempt_at = $this->freshTimeStamp();
-		$isGlobal = !$this->user_id;
+		$isGlobal = !$this->user_id && !$this->login;
 
 		if (( $isGlobal && $this->getLoginAttempts() >= static::$ipAttemptLimit)
 			||
@@ -262,12 +262,12 @@ class Throttle extends Model implements ThrottleInterface {
 	 */
 	public function check()
 	{
-		if ($user = $this->getUser()) {
+		if ($login = $this->login) {
 			if ($this->isBanned())
 			{
 				throw new UserBannedException(sprintf(
 					'User [%s] has been banned.',
-					$this->getUser()->getLogin()
+					$login
 				));
 			}
 
@@ -275,7 +275,7 @@ class Throttle extends Model implements ThrottleInterface {
 			{
 				throw new UserSuspendedException(sprintf(
 					'User [%s] has been suspended.',
-					$this->getUser()->getLogin()
+					$login
 				));
 			}
 		} else {
